@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { MailerModule } from '@nestjs-modules/mailer';
+import { HttpModule } from '@nestjs/axios'; // Reemplaza MailerModule
 import { UsersModule } from './modules/users/users.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 import { DepartamentoModule } from './modules/departamento/departamento.module';
@@ -12,6 +12,8 @@ import { SubsidiariaModule } from './modules/subsidiaria/subsidiaria.module';
 import { ComentariosNotificacionModule } from './modules/comentarios-notificacion/comentarios-notificacion.module';
 import { TecnicosModule } from './modules/tecnicos/tecnicos.module';
 import { OrdenTrabajoModule } from './modules/orden-trabajo/orden-trabajo.module';
+import { EmailService } from './config/email.service';
+
 
 @Module({
   imports: [
@@ -30,19 +32,7 @@ import { OrdenTrabajoModule } from './modules/orden-trabajo/orden-trabajo.module
       migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
       migrationsTableName: 'migrations',
     }),
-    MailerModule.forRoot({
-      transport: {
-        host: 'smtp.gmail.com',
-        secure: true,
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-      },
-      defaults: {
-        from: '"No Reply" <no-reply@example.com>',
-      },
-    }),
+    HttpModule,
     UsersModule,
     NotificacionesModule,
     DepartamentoModule,
@@ -53,6 +43,6 @@ import { OrdenTrabajoModule } from './modules/orden-trabajo/orden-trabajo.module
     OrdenTrabajoModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,EmailService],
 })
 export class AppModule {}

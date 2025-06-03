@@ -5,11 +5,10 @@ import { ComentariosNotificacionController } from './comentarios-notificacion.co
 import { ComentariosNotifi } from './entities/ComentariosNotifi.entity';
 import { Notificaciones } from '../notificaciones/entities/notificacion.entity';
 import { OrdenTrabajo } from '../orden-trabajo/entities/orden-trabajo.entity';
-import { MailerModule } from '@nestjs-modules/mailer';
-
+import { EmailService } from 'src/config/email.service';
 @Module({
-  imports: [TypeOrmModule.forFeature([ComentariosNotifi, Notificaciones,OrdenTrabajo]),MailerModule],
+  imports: [TypeOrmModule.forFeature([ComentariosNotifi, Notificaciones,OrdenTrabajo])],
   controllers: [ComentariosNotificacionController],
-  providers: [ComentariosNotificacionService],
+  providers: [ComentariosNotificacionService, EmailService],
 })
 export class ComentariosNotificacionModule {}

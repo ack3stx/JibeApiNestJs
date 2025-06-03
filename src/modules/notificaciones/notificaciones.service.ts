@@ -221,7 +221,16 @@ export class NotificacionesService {
             });
     }
     else if(BusquedasFiltradasDto.id_User){
+        return this.notificacionRepository.find({
+            relations: {
+                ClaseDepartamentoSubsidiaria:{
+                    clase: true,
+                    departamento: true,
+                    subsidiaria: true
+                }
+            }
+            
+    });
     }
-
   }
 }

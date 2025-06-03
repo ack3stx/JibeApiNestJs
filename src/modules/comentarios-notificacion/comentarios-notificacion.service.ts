@@ -5,8 +5,7 @@ import { Repository } from 'typeorm';
 import { ComentariosNotifi } from './entities/ComentariosNotifi.entity';
 import { Notificaciones } from '../notificaciones/entities/notificacion.entity';
 import { OrdenTrabajo } from '../orden-trabajo/entities/orden-trabajo.entity';
-import { MailerService } from '@nestjs-modules/mailer';
-
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class ComentariosNotificacionService {
@@ -18,7 +17,6 @@ export class ComentariosNotificacionService {
         private readonly Notificaciones: Repository<Notificaciones>,
         @InjectRepository(OrdenTrabajo)
         private readonly ordenTrabajo: Repository<OrdenTrabajo>,
-        private readonly mailerService: MailerService
     ) {}
     
     async NuevoComentarioNotificacion(ComentariosNotificacion: ComentariosNotificacion): Promise<ComentariosNotifi | string> {
@@ -81,59 +79,68 @@ export class ComentariosNotificacionService {
     }
     
     private async enviarCorreoActualizacion(notificacion: Notificaciones, estado: string, comentario: string) {
-        try {
-            const emailDestino = notificacion.usuarioCreador.email;
-            
-            let asunto = '';
-            let contenido = '';
-            
-            switch(estado) {
-                case 'aceptada':
-                    asunto = 'Tu notificación ha sido aceptada';
-                    contenido = `
-                        <h2>¡Buenas noticias!</h2>
-                        <p>Tu notificación con ID ${notificacion.id} ha sido aceptada.</p>
-                        <p><strong>Descripción De La Notificacion:</strong> ${notificacion.descripcion}</p>
-                        <p><strong>Fecha:</strong> ${notificacion.fecha_notificacion.toLocaleDateString()}</p>
-                        <p><strong>Departamento:</strong> ${notificacion.ClaseDepartamentoSubsidiaria.departamento.nombre}</p>
-                        <p><strong>Clase:</strong> ${notificacion.ClaseDepartamentoSubsidiaria.clase.nombre}</p>
-                    `;
-                    break;
-                case 'cancelada':
-                    asunto = 'Tu notificación ha sido cancelada';
-                    contenido = `
-                        <h2>Notificación cancelada</h2>
-                        <p>Tu notificación con ID ${notificacion.id} ha sido cancelada.</p>
-                        <p><strong>Descripción De La Notificacion:</strong> ${notificacion.descripcion}</p>
-                        <p><strong>Fecha:</strong> ${notificacion.fecha_notificacion.toLocaleDateString()}</p>
-                    `;
-                    break;
-                default:
-                    asunto = 'Actualización en tu notificación';
-                    contenido = `
-                        <h2>Tu notificación ha sido actualizada</h2>
-                        <p>Tu notificación con ID ${notificacion.id} ha tenido cambios.</p>
-                        <p><strong>Estado actual:</strong> ${estado}</p>
-                        <p><strong>Descripción De La Notificacion:</strong> ${notificacion.descripcion}</p>
-                        <p><strong>Fecha:</strong> ${notificacion.fecha_notificacion.toLocaleDateString()}</p>
-                    `;
-                    break;
-            }
-            
-            if (comentario) {
-                contenido += `<p><strong>Mensaje De Soporte De Mantenimiento:</strong> ${comentario}</p>`;
-            }
-            
-            await this.mailerService.sendMail({
-                to: emailDestino,
-                subject: asunto,
-                html: contenido,
-            });
-            
-            console.log(`Correo enviado a ${emailDestino}`);
-            console.log(estado, contenido);
-        } catch (error) {
-            console.error('Error al enviar correo:', error);
+    try {
+        const emailDestino = notificacion.usuarioCreador.email;
+        
+        let asunto = '';
+        let contenido = '';
+        
+        switch(estado) {
+            case 'aceptada':
+                asunto = 'Tu notificación ha sido aceptada';
+                contenido = `
+                    <h2>¡Buenas noticias!</h2>
+                    <p>Tu notificación con ID ${notificacion.id} ha sido aceptada.</p>
+                    <p><strong>Descripción De La Notificacion:</strong> ${notificacion.descripcion}</p>
+                    <p><strong>Fecha:</strong> ${notificacion.fecha_notificacion.toLocaleDateString()}</p>
+                    <p><strong>Departamento:</strong> ${notificacion.ClaseDepartamentoSubsidiaria.departamento.nombre}</p>
+                    <p><strong>Clase:</strong> ${notificacion.ClaseDepartamentoSubsidiaria.clase.nombre}</p>
+                `;
+                break;
+            case 'cancelada':
+                asunto = 'Tu notificación ha sido cancelada';
+                contenido = `
+                    <h2>Notificación cancelada</h2>
+                    <p>Tu notificación con ID ${notificacion.id} ha sido cancelada.</p>
+                    <p><strong>Descripción De La Notificacion:</strong> ${notificacion.descripcion}</p>
+                    <p><strong>Fecha:</strong> ${notificacion.fecha_notificacion.toLocaleDateString()}</p>
+                `;
+                break;
+            default:
+                asunto = 'Actualización en tu notificación';
+                contenido = `
+                    <h2>Tu notificación ha sido actualizada</h2>
+                    <p>Tu notificación con ID ${notificacion.id} ha tenido cambios.</p>
+                    <p><strong>Estado actual:</strong> ${estado}</p>
+                    <p><strong>Descripción De La Notificacion:</strong> ${notificacion.descripcion}</p>
+                    <p><strong>Fecha:</strong> ${notificacion.fecha_notificacion.toLocaleDateString()}</p>
+                `;
+                break;
         }
+        
+        if (comentario) {
+            contenido += `<p><strong>Mensaje De Soporte De Mantenimiento:</strong> ${comentario}</p>`;
+        }
+        
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD
+            }
+        });
+
+        await transporter.sendMail({
+            from: `"Jibe Mantenimiento" <${process.env.GMAIL_USER}>`,
+            to: emailDestino,
+            subject: asunto,
+            html: contenido,
+        });
+        
+        console.log(`Correo enviado a ${emailDestino}`);
+        console.log(estado, contenido);
+    } catch (error) {
+        console.error('Error al enviar correo:', error);
     }
+}
 }
