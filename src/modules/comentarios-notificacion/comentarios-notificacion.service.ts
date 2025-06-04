@@ -6,6 +6,7 @@ import { ComentariosNotifi } from './entities/ComentariosNotifi.entity';
 import { Notificaciones } from '../notificaciones/entities/notificacion.entity';
 import { OrdenTrabajo } from '../orden-trabajo/entities/orden-trabajo.entity';
 import * as nodemailer from 'nodemailer';
+import { EmailService } from 'src/config/email.service';
 
 @Injectable()
 export class ComentariosNotificacionService {
@@ -17,6 +18,7 @@ export class ComentariosNotificacionService {
         private readonly Notificaciones: Repository<Notificaciones>,
         @InjectRepository(OrdenTrabajo)
         private readonly ordenTrabajo: Repository<OrdenTrabajo>,
+        private readonly emailService: EmailService,
     ) {}
     
     async NuevoComentarioNotificacion(ComentariosNotificacion: ComentariosNotificacion): Promise<ComentariosNotifi | string> {
@@ -122,25 +124,24 @@ export class ComentariosNotificacionService {
             contenido += `<p><strong>Mensaje De Soporte De Mantenimiento:</strong> ${comentario}</p>`;
         }
         
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
-            }
-        });
-
-        await transporter.sendMail({
-            from: `"Jibe Mantenimiento" <${process.env.GMAIL_USER}>`,
+        // Usar el EmailService inyectado en lugar de crear un transporter aquí
+        const result = await this.emailService.sendMail({
             to: emailDestino,
             subject: asunto,
-            html: contenido,
+            html: contenido
         });
         
         console.log(`Correo enviado a ${emailDestino}`);
-        console.log(estado, contenido);
+        console.log(`Estado: ${estado}`);
+        console.log(`Comentario: ${comentario}`);
+        console.log(`Contenido del correo: ${contenido}`);
+        console.log(`Resultado del envío: ${JSON.stringify(result)}`);
+        
+        
+        return result;
     } catch (error) {
         console.error('Error al enviar correo:', error);
+        throw new Error(`Error al enviar correo: ${error.message}`);
     }
 }
 }

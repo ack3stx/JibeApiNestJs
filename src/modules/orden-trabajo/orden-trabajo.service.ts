@@ -54,6 +54,7 @@ export class OrdenTrabajoService {
 
             const asignacionTecnico = new asignacion_tecnicos();
             asignacionTecnico.orden_trabajo = NuevaOrdenTrabajo;
+            
             console.log('Asignacion Tecnico:', ordenTrabajo.tecnicoResponsable.id);
             asignacionTecnico.tecnicos = tecnico;
 
