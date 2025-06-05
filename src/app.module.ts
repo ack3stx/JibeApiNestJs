@@ -13,6 +13,7 @@ import { ComentariosNotificacionModule } from './modules/comentarios-notificacio
 import { TecnicosModule } from './modules/tecnicos/tecnicos.module';
 import { OrdenTrabajoModule } from './modules/orden-trabajo/orden-trabajo.module';
 import { EmailService } from './config/email.service';
+import { AsignacionTecnicosModule } from './modules/asignacion-tecnicos/asignacion-tecnicos.module';
 
 
 @Module({
@@ -40,7 +41,8 @@ import { EmailService } from './config/email.service';
     SubsidiariaModule,
     ComentariosNotificacionModule,
     TecnicosModule,
-    OrdenTrabajoModule
+    OrdenTrabajoModule,
+    AsignacionTecnicosModule
   ],
   controllers: [AppController],
   providers: [AppService,EmailService],
